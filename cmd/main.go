@@ -1,16 +1,31 @@
 package main
 
 import (
+	"database/sql"
+	"fmt"
 	"log"
-	"net/http"
 
 	"github.com/gin-gonic/gin"
+	_ "github.com/lib/pq"
 	"github.com/mateeusferro/schedula/internal/config"
 )
+
+var db *sql.DB
 
 func main() {
 	config.LoadEnv()
 	serverPort := config.EnvVariable("PORT")
+	fmt.Println(config.EnvVariable("DB_HOST"))
+	db = dbConnect()
+	defer db.Close()
+
+	pingErr := db.Ping()
+
+	if pingErr != nil {
+		log.Fatalf("Error connecting to the db: %v", pingErr)
+	}
+
+	fmt.Println("Connected to the db")
 
 	var router *gin.Engine = gin.Default()
 
@@ -20,8 +35,6 @@ func main() {
 		log.Fatalf("Error while setting trusted proxies: %v", err)
 	}
 
-	router.GET("/test", serverTest)
-
 	err1 := router.Run(":" + serverPort)
 
 	if err1 != nil {
@@ -29,6 +42,19 @@ func main() {
 	}
 }
 
-func serverTest(context *gin.Context) {
-	context.JSON(http.StatusOK, "OK")
+func dbConnect() *sql.DB {
+	host, port, user, password, name := config.ReturnDbConfig()
+
+	pgConnStr := fmt.Sprintf(`
+	host=%s port=%d user=%s password=%s
+	dbname=%s sslmode=disable
+	`, host, port, user, password, name)
+
+	conn, err := sql.Open("postgres", pgConnStr)
+
+	if err != nil {
+		log.Fatalf("Error opening db connection: %v", err)
+	}
+
+	return conn
 }
