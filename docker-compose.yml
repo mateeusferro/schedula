@@ -1,0 +1,24 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    environment:
+      - PORT=8000
+      - ENV=DEV
+      - AUDITLY_HOST=http://127.0.0.1:8080
+    env_file:
+      - .env
+    ports:
+      - 8000:8000
+
+  db:
+    image: postgres:17-alpine
+    volumes: 
+      - ./sql:/docker-entrypoint-initdb.d/
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=root
+      - POSTGRES_DB=sdb
+    ports:
+      - 5432:5432
