@@ -15,7 +15,7 @@ var db *sql.DB
 func main() {
 	config.LoadEnv()
 	serverPort := config.EnvVariable("PORT")
-	fmt.Println(config.EnvVariable("DB_HOST"))
+
 	db = dbConnect()
 	defer db.Close()
 
