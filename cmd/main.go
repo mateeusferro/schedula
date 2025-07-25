@@ -39,7 +39,6 @@ func main() {
 
 func getDb() {
 	db = database.DbConnect()
-	defer db.Close()
 
 	err := db.Ping()
 

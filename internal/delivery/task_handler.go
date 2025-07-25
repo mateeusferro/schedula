@@ -2,6 +2,7 @@ package delivery
 
 import (
 	"database/sql"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -26,6 +27,7 @@ func handleGetTaskInfo(taskUseCase *usecase.TaskUseCase) gin.HandlerFunc {
 
 		task, err := taskUseCase.ExecuteGetTask(id)
 		if err != nil {
+			fmt.Printf("Error: %v", err)
 			context.JSON(http.StatusInternalServerError, gin.H{"error": "Something went wrong"})
 			return
 		}
@@ -40,6 +42,7 @@ func handleGetTasksByStatus(taskUseCase *usecase.TaskUseCase) gin.HandlerFunc {
 
 		tasks, err := taskUseCase.ExecuteGetTasksByStatus(status)
 		if err != nil {
+			fmt.Printf("Error: %v", err)
 			context.JSON(http.StatusInternalServerError, gin.H{"error": "Something went wrong"})
 			return
 		}
@@ -60,6 +63,7 @@ func handleCreateTask(taskUseCase *usecase.TaskUseCase) gin.HandlerFunc {
 
 		result, err := taskUseCase.ExecuteCreateTask(task)
 		if err != nil {
+			fmt.Printf("Error: %v", err)
 			context.JSON(http.StatusInternalServerError, gin.H{"error": "Something went wrong while creating the task"})
 			return
 		}
@@ -74,6 +78,7 @@ func handleDeleteTask(taskUseCase *usecase.TaskUseCase) gin.HandlerFunc {
 
 		result, err := taskUseCase.ExecuteDeleteTask(id)
 		if err != nil {
+			fmt.Printf("Error: %v", err)
 			context.JSON(
 				http.StatusInternalServerError,
 				gin.H{
