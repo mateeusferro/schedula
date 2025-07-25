@@ -1,6 +1,8 @@
 package usecase
 
 import (
+	"encoding/json"
+
 	"github.com/mateeusferro/schedula/internal/domain"
 	"github.com/mateeusferro/schedula/internal/repository"
 )
@@ -32,7 +34,20 @@ func (usecase *TaskUseCase) ExecuteGetTasksByStatus(status string) ([]domain.Tas
 }
 
 func (usecase *TaskUseCase) ExecuteCreateTask(task domain.TaskInput) (bool, error) {
-	_, err := usecase.repo.CreateTask(task)
+	jsonPayload, err := json.Marshal(task.Payload)
+	if err != nil {
+		return false, err
+	}
+	taskToSave := domain.TaskToSave{
+		Name:         task.Name,
+		Payload:      jsonPayload,
+		Run_at:       task.Run_at,
+		Status:       task.Status,
+		Attempts:     task.Attempts,
+		Max_attempts: task.Max_attempts,
+	}
+
+	_, err = usecase.repo.CreateTask(taskToSave)
 	if err != nil {
 		return false, err
 	}

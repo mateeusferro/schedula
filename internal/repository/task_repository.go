@@ -2,6 +2,7 @@ package repository
 
 import (
 	"database/sql"
+	"encoding/json"
 
 	"github.com/mateeusferro/schedula/internal/domain"
 )
@@ -14,7 +15,7 @@ func NewTaskRepository(db *sql.DB) *TaskRepository {
 	return &TaskRepository{DB: db}
 }
 
-func (repository *TaskRepository) CreateTask(task domain.TaskInput) (bool, error) {
+func (repository *TaskRepository) CreateTask(task domain.TaskToSave) (bool, error) {
 	_, err := repository.DB.Exec(`
 			INSERT INTO SCHEDULED_TASKS
 				(NAME, PAYLOAD, RUN_AT, STATUS, ATTEMPTS, MAX_ATTEMPTS)
@@ -32,22 +33,28 @@ func (repository *TaskRepository) CreateTask(task domain.TaskInput) (bool, error
 func (repository *TaskRepository) GetTaskInfo(id string) (*domain.Task, error) {
 	row := repository.DB.QueryRow(`
 			SELECT * FROM SCHEDULED_TASKS 
-			WHERE ID = ?
+			WHERE ID = $1
 		`, id)
 
 	var task domain.Task
+	var rawPayload []byte
+
 	err := row.Scan(
-		&task.Attempts,
-		&task.Created_at,
 		&task.Id,
-		&task.Max_attempts,
 		&task.Name,
-		&task.Payload,
+		&rawPayload,
 		&task.Run_at,
 		&task.Status,
+		&task.Attempts,
+		&task.Max_attempts,
+		&task.Created_at,
 		&task.Updated_at,
 	)
+	if err != nil {
+		return nil, err
+	}
 
+	err = json.Unmarshal(rawPayload, &task.Payload)
 	if err != nil {
 		return nil, err
 	}
@@ -59,7 +66,7 @@ func (repository *TaskRepository) GetTaskInfo(id string) (*domain.Task, error) {
 func (repository *TaskRepository) GetTasksByStatus(status string) ([]domain.Task, error) {
 	rows, err := repository.DB.Query(`
 		SELECT * FROM SCHEDULED_TASKS
-		WHERE STATUS = ?
+		WHERE STATUS = $1
 	`, status)
 	if err != nil {
 		return nil, err
@@ -70,18 +77,24 @@ func (repository *TaskRepository) GetTasksByStatus(status string) ([]domain.Task
 	var tasks []domain.Task
 	for rows.Next() {
 		var task domain.Task
+		var rawPayload []byte
 
 		err := rows.Scan(
-			&task.Attempts,
-			&task.Created_at,
 			&task.Id,
-			&task.Max_attempts,
 			&task.Name,
-			&task.Payload,
+			&rawPayload,
 			&task.Run_at,
 			&task.Status,
+			&task.Attempts,
+			&task.Max_attempts,
+			&task.Created_at,
 			&task.Updated_at,
 		)
+		if err != nil {
+			return nil, err
+		}
+
+		err = json.Unmarshal(rawPayload, &task.Payload)
 		if err != nil {
 			return nil, err
 		}

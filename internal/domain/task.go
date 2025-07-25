@@ -22,3 +22,12 @@ type TaskInput struct {
 	Attempts     int                    `json:"attempts"`
 	Max_attempts int                    `json:"max_attempts"`
 }
+
+type TaskToSave struct {
+	Name         string
+	Payload      []byte
+	Run_at       time.Time
+	Status       string
+	Attempts     int
+	Max_attempts int
+}
