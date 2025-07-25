@@ -4,13 +4,16 @@ services:
       context: .
       dockerfile: ./Dockerfile
     environment:
-      - PORT=8000
+      - PORT=5000
       - ENV=DEV
       - AUDITLY_HOST=http://127.0.0.1:8080
-    env_file:
-      - .env
+      - DB_HOST=127.0.0.1
+      - DB_PORT=5432
+      - DB_USER=root
+      - DB_PWD=root
+      - DB_NAME=sdb
     ports:
-      - 8000:8000
+      - 5000:5000
 
   db:
     image: postgres:17-alpine
