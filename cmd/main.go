@@ -31,7 +31,7 @@ func main() {
 
 	delivery.Routes(router, db)
 
-	cron.InitCron()
+	cron.InitCron(db)
 	err = router.Run(":" + serverPort)
 
 	if err != nil {
