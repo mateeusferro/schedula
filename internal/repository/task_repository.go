@@ -62,7 +62,6 @@ func (repository *TaskRepository) GetTaskInfo(id string) (*domain.Task, error) {
 	return &task, nil
 }
 
-// Next feature maybe add other fields
 func (repository *TaskRepository) GetTasksByStatus(status string) ([]domain.Task, error) {
 	rows, err := repository.DB.Query(`
 		SELECT * FROM SCHEDULED_TASKS
@@ -107,6 +106,60 @@ func (repository *TaskRepository) GetTasksByStatus(status string) ([]domain.Task
 
 func (repository *TaskRepository) DeleteTask(id string) (bool, error) {
 	_, err := repository.DB.Exec("DELETE FROM SCHEDULED_TASKS WHERE id = $1", id)
+	if err != nil {
+		return false, err
+	}
+
+	return true, err
+}
+
+func (repository *TaskRepository) GetPendingTask() ([]domain.Task, error) {
+	rows, err := repository.DB.Query(`
+		SELECT * FROM SCHEDULED_TASKS
+		WHERE RUN_AT <= NOW() AND STATUS = 'pending'
+	`)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	var tasks []domain.Task
+	for rows.Next() {
+		var task domain.Task
+		var rawPayload []byte
+
+		err := rows.Scan(
+			&task.Id,
+			&task.Name,
+			&rawPayload,
+			&task.Run_at,
+			&task.Status,
+			&task.Attempts,
+			&task.Max_attempts,
+			&task.Created_at,
+			&task.Updated_at,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		err = json.Unmarshal(rawPayload, &task.Payload)
+		if err != nil {
+			return nil, err
+		}
+
+		tasks = append(tasks, task)
+	}
+
+	return tasks, nil
+}
+
+func (repository *TaskRepository) UpdateTaskStatus(id string, status string) (bool, error) {
+	_, err := repository.DB.Exec(`
+		UPDATE SCHEDULED_TASKS SET STATUS = $1 WHERE id = $2
+	`, status, id)
 	if err != nil {
 		return false, err
 	}
