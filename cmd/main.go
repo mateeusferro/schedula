@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	_ "github.com/lib/pq"
 	"github.com/mateeusferro/schedula/internal/config"
+	"github.com/mateeusferro/schedula/internal/cron"
 	"github.com/mateeusferro/schedula/internal/database"
 	"github.com/mateeusferro/schedula/internal/delivery"
 )
@@ -30,6 +31,7 @@ func main() {
 
 	delivery.Routes(router, db)
 
+	cron.InitCron()
 	err = router.Run(":" + serverPort)
 
 	if err != nil {
