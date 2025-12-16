@@ -49,6 +49,9 @@ jobs:
     name: Deploy
     runs-on: self-hosted
     steps:
+      - name: Login to Docker Hub
+        run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+
       - name: Pull docker image
         run: docker pull mateusf03/smart-queue-go-app:latest
         
